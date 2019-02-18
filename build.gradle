@@ -1,0 +1,51 @@
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath "com.avast.gradle:gradle-docker-compose-plugin:0.8.14"
+	}
+}
+
+plugins {
+	id 'org.springframework.boot' version '2.1.3.RELEASE'
+	id 'java'
+	id 'groovy'
+}
+
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'docker-compose'
+
+group = 'lde'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+	mavenCentral()
+	maven { url = "https://repo.spring.io/snapshot" }
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-amqp'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	testImplementation 'org.codehaus.groovy:groovy-all:2.4.10'
+	testImplementation 'org.spockframework:spock-core:1.2-groovy-2.4'
+	testImplementation 'org.spockframework:spock-spring:1.2-groovy-2.4'
+	testImplementation "org.springframework.cloud:spring-cloud-starter-contract-stub-runner:2.1.1.BUILD-SNAPSHOT"
+	testImplementation "org.springframework.cloud:spring-cloud-starter-contract-verifier:2.1.1.BUILD-SNAPSHOT"
+}
+
+dockerCompose.isRequiredBy(test)
+dockerCompose {
+	useComposeFiles = ['gradle/docker-compose/docker-compose-integration-tests.yml']
+	forceRecreate = true
+	waitForTcpPorts = false
+}
+
+task removeRabbitMqItContainer(type: Exec) {
+	ignoreExitValue = true
+	commandLine 'docker', 'rm', '-f', 'rabbitmq-it'
+}
+
+composeUp.dependsOn removeRabbitMqItContainer
