@@ -1,5 +1,5 @@
 rabbitmq-it:
-  image: "rabbitmq:3"
+  image: "healthcheck/rabbitmq"
   ports:
    - "5672:5672"
   environment:
